@@ -1,20 +1,23 @@
+"use client"
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
+import { supabase } from "@/utils/supabase/supabaseClient"
 
-import { Metadata } from "next";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 
-export const metadata: Metadata = {
-  title: "Next.js SignUp Page | Manojkumar - Next.js Dashboard Template",
-  description: "This is Next.js SignUp Page Manojkumar Dashboard Template",
-  // other metadata
-};
-
 const SignUp: React.FC = () => {
+  const onClick = async () => {
+    const { data, error } = await supabase.auth.signUp({
+      email: 'kbmanojkumar.20cs@gmail.com',
+      password: 'Manojcse',
+    })
+    console.log(data)
+  }
   return (
     <DefaultLayout>
+       <button onClick={()=>onClick()}>Click</button>
       <Breadcrumb pageName="Sign Up" />
 
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
@@ -310,7 +313,7 @@ const SignUp: React.FC = () => {
                     </span>
                   </div>
                 </div>
-
+               
                 <div className="mb-5">
                   <input
                     type="submit"

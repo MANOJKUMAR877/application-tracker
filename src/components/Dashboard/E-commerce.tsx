@@ -1,104 +1,180 @@
 "use client";
 import dynamic from "next/dynamic";
-import React from "react";
-import ChartOne from "../Charts/ChartOne";
-import ChartTwo from "../Charts/ChartTwo";
-import ChatCard from "../Chat/ChatCard";
-import TableOne from "../Tables/TableOne";
-import CardDataStats from "../CardDataStats";
+import React, { useEffect, useState } from "react";
+import { supabase } from "@/utils/supabase/supabaseClient";
+import { v4 as uuidv4 } from "uuid"; // Import UUID generator
 
-const MapOne = dynamic(() => import("@/components/Maps/MapOne"), {
-  ssr: false,
-});
-
-const ChartThree = dynamic(() => import("@/components/Charts/ChartThree"), {
-  ssr: false,
-});
+type ApplicationList = {
+  id: string; // UUID type for ID
+  company_name: string;
+  type_ofApplication: string;
+  application_status: string;
+  position: string;
+  email_followup: string;
+};
 
 const Ecommerce: React.FC = () => {
+  const [applicationList, setApplicationList] = useState<ApplicationList[]>([]);
+
+  const fetchData = async () => {
+    const { data, error } = await supabase.from("Application").select("*");
+    if (data) {
+      setApplicationList(data);
+    } else {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData(); // Fetch data on component mount
+  }, []);
+
+  const handleAddRow = () => {
+    const newRow: ApplicationList = {
+      id: uuidv4(), // Generate a new UUID
+      company_name: "",
+      type_ofApplication: "",
+      application_status: "",
+      position: "",
+      email_followup: "",
+    };
+    setApplicationList([...applicationList, newRow]);
+  };
+
+  const handleSave = async (index: number) => {
+    const row = applicationList[index];
+
+    if (!row.company_name || !row.type_ofApplication || !row.position) {
+      alert("Please fill all the required fields.");
+      return;
+    }
+
+    const { data, error } = await supabase.from("Application").insert([row]);
+
+    if (error) {
+      console.error("Error saving data:", error);
+    } else {
+      alert("Row saved successfully!");
+      fetchData();
+    }
+  };
+
+  const handleInputChange = (
+    index: number,
+    field: keyof ApplicationList,
+    value: string
+  ) => {
+    const updatedList = [...applicationList];
+    updatedList[index][field] = value;
+    setApplicationList(updatedList);
+  };
+
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
-       
-        <CardDataStats title="Total Application" total="120" rate="" levelUp>
-        <svg
-            className="fill-primary dark:fill-white"
-            width="22"
-            height="16"
-            viewBox="0 0 22 16"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M11 15.1156C4.19376 15.1156 0.825012 8.61876 0.687512 8.34376C0.584387 8.13751 0.584387 7.86251 0.687512 7.65626C0.825012 7.38126 4.19376 0.918762 11 0.918762C17.8063 0.918762 21.175 7.38126 21.3125 7.65626C21.4156 7.86251 21.4156 8.13751 21.3125 8.34376C21.175 8.61876 17.8063 15.1156 11 15.1156ZM2.26876 8.00001C3.02501 9.27189 5.98126 13.5688 11 13.5688C16.0188 13.5688 18.975 9.27189 19.7313 8.00001C18.975 6.72814 16.0188 2.43126 11 2.43126C5.98126 2.43126 3.02501 6.72814 2.26876 8.00001Z"
-              fill=""
-            />
-            <path
-              d="M11 10.9219C9.38438 10.9219 8.07812 9.61562 8.07812 8C8.07812 6.38438 9.38438 5.07812 11 5.07812C12.6156 5.07812 13.9219 6.38438 13.9219 8C13.9219 9.61562 12.6156 10.9219 11 10.9219ZM11 6.625C10.2437 6.625 9.625 7.24375 9.625 8C9.625 8.75625 10.2437 9.375 11 9.375C11.7563 9.375 12.375 8.75625 12.375 8C12.375 7.24375 11.7563 6.625 11 6.625Z"
-              fill=""
-            />
-          </svg>
-        </CardDataStats>
-        <CardDataStats title="Total Application Rejected" total="100" rate="" levelUp>
-        <svg
-            className="fill-primary dark:fill-white"
-            width="22"
-            height="16"
-            viewBox="0 0 22 16"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M11 15.1156C4.19376 15.1156 0.825012 8.61876 0.687512 8.34376C0.584387 8.13751 0.584387 7.86251 0.687512 7.65626C0.825012 7.38126 4.19376 0.918762 11 0.918762C17.8063 0.918762 21.175 7.38126 21.3125 7.65626C21.4156 7.86251 21.4156 8.13751 21.3125 8.34376C21.175 8.61876 17.8063 15.1156 11 15.1156ZM2.26876 8.00001C3.02501 9.27189 5.98126 13.5688 11 13.5688C16.0188 13.5688 18.975 9.27189 19.7313 8.00001C18.975 6.72814 16.0188 2.43126 11 2.43126C5.98126 2.43126 3.02501 6.72814 2.26876 8.00001Z"
-              fill=""
-            />
-            <path
-              d="M11 10.9219C9.38438 10.9219 8.07812 9.61562 8.07812 8C8.07812 6.38438 9.38438 5.07812 11 5.07812C12.6156 5.07812 13.9219 6.38438 13.9219 8C13.9219 9.61562 12.6156 10.9219 11 10.9219ZM11 6.625C10.2437 6.625 9.625 7.24375 9.625 8C9.625 8.75625 10.2437 9.375 11 9.375C11.7563 9.375 12.375 8.75625 12.375 8C12.375 7.24375 11.7563 6.625 11 6.625Z"
-              fill=""
-            />
-          </svg>
-       </CardDataStats>
-       <CardDataStats title="Total Application On Progress" total="1" rate="" levelUp>
-       <svg
-            className="fill-primary dark:fill-white"
-            width="22"
-            height="16"
-            viewBox="0 0 22 16"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M11 15.1156C4.19376 15.1156 0.825012 8.61876 0.687512 8.34376C0.584387 8.13751 0.584387 7.86251 0.687512 7.65626C0.825012 7.38126 4.19376 0.918762 11 0.918762C17.8063 0.918762 21.175 7.38126 21.3125 7.65626C21.4156 7.86251 21.4156 8.13751 21.3125 8.34376C21.175 8.61876 17.8063 15.1156 11 15.1156ZM2.26876 8.00001C3.02501 9.27189 5.98126 13.5688 11 13.5688C16.0188 13.5688 18.975 9.27189 19.7313 8.00001C18.975 6.72814 16.0188 2.43126 11 2.43126C5.98126 2.43126 3.02501 6.72814 2.26876 8.00001Z"
-              fill=""
-            />
-            <path
-              d="M11 10.9219C9.38438 10.9219 8.07812 9.61562 8.07812 8C8.07812 6.38438 9.38438 5.07812 11 5.07812C12.6156 5.07812 13.9219 6.38438 13.9219 8C13.9219 9.61562 12.6156 10.9219 11 10.9219ZM11 6.625C10.2437 6.625 9.625 7.24375 9.625 8C9.625 8.75625 10.2437 9.375 11 9.375C11.7563 9.375 12.375 8.75625 12.375 8C12.375 7.24375 11.7563 6.625 11 6.625Z"
-              fill=""
-            />
-          </svg>
-       </CardDataStats>
-       <CardDataStats title="Total Application Ghosted" total="12" rate="" levelUp>
-       <svg
-            className="fill-primary dark:fill-white"
-            width="22"
-            height="16"
-            viewBox="0 0 22 16"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M11 15.1156C4.19376 15.1156 0.825012 8.61876 0.687512 8.34376C0.584387 8.13751 0.584387 7.86251 0.687512 7.65626C0.825012 7.38126 4.19376 0.918762 11 0.918762C17.8063 0.918762 21.175 7.38126 21.3125 7.65626C21.4156 7.86251 21.4156 8.13751 21.3125 8.34376C21.175 8.61876 17.8063 15.1156 11 15.1156ZM2.26876 8.00001C3.02501 9.27189 5.98126 13.5688 11 13.5688C16.0188 13.5688 18.975 9.27189 19.7313 8.00001C18.975 6.72814 16.0188 2.43126 11 2.43126C5.98126 2.43126 3.02501 6.72814 2.26876 8.00001Z"
-              fill=""
-            />
-            <path
-              d="M11 10.9219C9.38438 10.9219 8.07812 9.61562 8.07812 8C8.07812 6.38438 9.38438 5.07812 11 5.07812C12.6156 5.07812 13.9219 6.38438 13.9219 8C13.9219 9.61562 12.6156 10.9219 11 10.9219ZM11 6.625C10.2437 6.625 9.625 7.24375 9.625 8C9.625 8.75625 10.2437 9.375 11 9.375C11.7563 9.375 12.375 8.75625 12.375 8C12.375 7.24375 11.7563 6.625 11 6.625Z"
-              fill=""
-            />
-          </svg>
-       </CardDataStats>
+      <div className="overflow-x-auto">
+        <table className="table-auto w-full border-collapse border border-gray-300">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border border-gray-300 px-4 py-2">ID</th>
+              <th className="border border-gray-300 px-4 py-2">Company Name</th>
+              <th className="border border-gray-300 px-4 py-2">
+                Type of Application
+              </th>
+              <th className="border border-gray-300 px-4 py-2">
+                Application Status
+              </th>
+              <th className="border border-gray-300 px-4 py-2">Position</th>
+              <th className="border border-gray-300 px-4 py-2">Email Followup</th>
+              <th className="border border-gray-300 px-4 py-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {applicationList.map((application, index) => (
+              <tr key={application.id} className="hover:bg-gray-50">
+                <td className="border border-gray-300 px-4 py-2">
+                  {application.id}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <input
+                    type="text"
+                    value={application.company_name}
+                    onChange={(e) =>
+                      handleInputChange(index, "company_name", e.target.value)
+                    }
+                    className="w-full p-2 border border-gray-300 rounded"
+                  />
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <input
+                    type="text"
+                    value={application.type_ofApplication}
+                    onChange={(e) =>
+                      handleInputChange(
+                        index,
+                        "type_ofApplication",
+                        e.target.value
+                      )
+                    }
+                    className="w-full p-2 border border-gray-300 rounded"
+                  />
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <input
+                    type="text"
+                    value={application.application_status}
+                    onChange={(e) =>
+                      handleInputChange(
+                        index,
+                        "application_status",
+                        e.target.value
+                      )
+                    }
+                    className="w-full p-2 border border-gray-300 rounded"
+                  />
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <input
+                    type="text"
+                    value={application.position}
+                    onChange={(e) =>
+                      handleInputChange(index, "position", e.target.value)
+                    }
+                    className="w-full p-2 border border-gray-300 rounded"
+                  />
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <input
+                    type="text"
+                    value={application.email_followup}
+                    onChange={(e) =>
+                      handleInputChange(
+                        index,
+                        "email_followup",
+                        e.target.value
+                      )
+                    }
+                    className="w-full p-2 border border-gray-300 rounded"
+                  />
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <button
+                    onClick={() => handleSave(index)}
+                    className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                  >
+                    Save
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <button
+          onClick={handleAddRow}
+          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Add New Row
+        </button>
       </div>
-
-   
     </>
   );
 };
